@@ -1,6 +1,4 @@
 mod entry;
-mod entry_distro;
-mod entry_hostname;
 mod prefix;
 
 fn main() {
