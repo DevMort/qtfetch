@@ -172,7 +172,6 @@ fn read_cpu() -> String {
         .get(4)
         .unwrap()
         .to_string();
-
     line.rsplit(": ")
         .collect::<Vec<&str>>()
         .iter()
