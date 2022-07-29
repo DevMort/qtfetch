@@ -21,7 +21,7 @@ pub enum EntryType {
 impl Entry {
     pub fn new() -> Self {
         Self {
-            package_count: read_package_num("Void"),
+            package_count: read_package_num(),
             username: read_username(),
             hostname: read_hostname(),
             distro: read_distro(),
@@ -31,7 +31,7 @@ impl Entry {
     pub fn get_string_user(&self) -> String {
         Color::Yellow
             .paint(format!(
-                "\t\t\t{}{}@{}",
+                "\t\t{}{}@{}",
                 prefix::get_prefix(EntryType::User),
                 self.username,
                 self.hostname,
@@ -124,7 +124,9 @@ fn read_username() -> String {
 }
 
 /// Counts the packages on the system.
-fn read_package_num(distro: &str) -> String {
+fn read_package_num() -> String {
+    let distro = read_distro();
+
     // Void linux
     if distro.contains("Void") || distro.contains("void") {
         let package_list = Command::new("xbps-query")
