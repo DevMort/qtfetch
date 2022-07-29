@@ -1,7 +1,6 @@
 use crate::prefix;
 use colored::Colorize;
-use std::fs::File;
-use std::io::prelude::*;
+use std::fs;
 use std::process::Command;
 
 /// Holds the entire fetch information.
@@ -10,12 +9,16 @@ pub struct Entry {
     hostname: String,
     banner: String,
     distro: String,
+    cpu: String,
+    temperature: String,
     package_count: String,
 }
 
 pub enum EntryType {
     User, // ex. anon@pc
+    CPU,
     PackageCount,
+    Temperature,
     Distro,
 }
 
@@ -24,7 +27,9 @@ impl Entry {
         Self {
             package_count: read_package_num(),
             username: read_username(),
+            temperature: read_temperature(),
             banner: read_banner(),
+            cpu: read_cpu(),
             hostname: read_hostname(),
             distro: read_distro(),
         }
@@ -32,7 +37,7 @@ impl Entry {
 
     pub fn get_string_user(&self) -> String {
         format!(
-            "\t\t{}{}@{}",
+            "\t\t{} {}@{}",
             prefix::get_prefix(EntryType::User),
             self.username,
             self.hostname,
@@ -47,7 +52,7 @@ impl Entry {
         format!(
             "\t{} {} {}",
             prefix::get_prefix(EntryType::Distro),
-            "DISTRO:".green().bold(),
+            "DIST:".green().bold(),
             self.distro
         )
     }
@@ -64,21 +69,33 @@ impl Entry {
     pub fn get_string_banner(&self) -> String {
         format!("{}", self.banner)
     }
+
+    pub fn get_string_cpu(&self) -> String {
+        format!(
+            "\t{} {} {}",
+            prefix::get_prefix(EntryType::CPU),
+            "CPU :".green().bold(),
+            self.cpu,
+        )
+    }
+
+    pub fn get_temperature(&self) -> String {
+        format!(
+            "\t{} {} {}",
+            prefix::get_prefix(EntryType::Temperature),
+            "TEMP:".green().bold(),
+            self.temperature,
+        )
+    }
 }
 
 /// Finds what kind of distro the user
 /// is currently using by reading the
 /// file called /etc/os-release.
 fn read_distro() -> String {
-    let mut file = match File::open("/etc/os-release") {
-        Ok(f) => f,
-        Err(e) => panic!("{e}"),
-    };
-    let mut contents = String::new();
-
-    match file.read_to_string(&mut contents) {
-        Ok(_) => {}
-        Err(e) => panic!("{e}"),
+    let contents = match fs::read_to_string("/etc/os-release") {
+        Ok(s) => s,
+        Err(_) => String::from(""),
     };
 
     find_pretty_name(contents)
@@ -98,7 +115,7 @@ fn find_pretty_name(s: String) -> String {
         None => panic!("Encountered some problems while finding hostname!"),
     };
 
-    line.rsplit('=')
+    line.rsplit('=') // splits into two ex: PRETTY_NAME=Void Linux
         .next()
         .unwrap()
         .to_string()
@@ -108,14 +125,13 @@ fn find_pretty_name(s: String) -> String {
 /// Runs and gets the output of the command
 /// `hostname` and then returns it.
 fn read_hostname() -> String {
-    let hostname = Command::new("hostname")
-        .output()
-        .expect("Encountered problems while finding hostname!");
-
-    String::from_utf8(hostname.stdout)
-        .unwrap()
-        .trim()
-        .to_string()
+    match Command::new("hostname").output() {
+        Ok(output) => String::from_utf8(output.stdout).unwrap().trim().to_string(),
+        Err(_) => match fs::read_to_string("/etc/hostname") {
+            Ok(hostname) => hostname,
+            Err(e) => panic!("{e}"),
+        },
+    }
 }
 
 /// Gets the current user using the command
@@ -128,6 +144,40 @@ fn read_username() -> String {
     String::from_utf8(username.stdout)
         .unwrap()
         .trim()
+        .to_string()
+}
+
+/// Find temperature in celsius.
+fn read_temperature() -> String {
+    let temp = match fs::read_to_string("/sys/class/thermal/thermal_zone0/temp") {
+        Ok(t) => t.trim().parse::<f64>().unwrap() / 1000.0,
+        Err(e) => panic!("Trouble finding temperature. {e}"),
+    };
+
+    format!("{}{}", temp, "°C")
+}
+
+/// Find CPU info.
+fn read_cpu() -> String {
+    let model_info = match fs::read_to_string("/proc/cpuinfo") {
+        Ok(s) => s,
+        Err(e) => panic!("Trouble finding CPU. {e}"),
+    };
+
+    // Variable `line` gives us something like:
+    // model name    : Intel(R) Core(TM) i3-8100 CPU @ 3.60GHz
+    let line = model_info
+        .lines()
+        .collect::<Vec<&str>>()
+        .get(4)
+        .unwrap()
+        .to_string();
+
+    line.rsplit(": ")
+        .collect::<Vec<&str>>()
+        .iter()
+        .next()
+        .unwrap()
         .to_string()
 }
 
@@ -278,6 +328,7 @@ fn read_banner() -> String {
         .to_string();
     }
 
+    // Should the distro not be found, just use "linux".
     String::from(
         r"
          __ __                    
