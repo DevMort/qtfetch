@@ -1,5 +1,5 @@
 use crate::prefix;
-use ansi_term::Color;
+use colored::Colorize;
 use std::fs::File;
 use std::io::prelude::*;
 use std::process::Command;
@@ -8,6 +8,7 @@ use std::process::Command;
 pub struct Entry {
     username: String,
     hostname: String,
+    banner: String,
     distro: String,
     package_count: String,
 }
@@ -23,27 +24,30 @@ impl Entry {
         Self {
             package_count: read_package_num(),
             username: read_username(),
+            banner: read_banner(),
             hostname: read_hostname(),
             distro: read_distro(),
         }
     }
 
     pub fn get_string_user(&self) -> String {
-        Color::Yellow
-            .paint(format!(
-                "\t\t{}{}@{}",
-                prefix::get_prefix(EntryType::User),
-                self.username,
-                self.hostname,
-            ))
-            .to_string()
+        format!(
+            "\t\t{}{}@{}",
+            prefix::get_prefix(EntryType::User),
+            self.username,
+            self.hostname,
+        )
+        .yellow()
+        .bold()
+        .italic()
+        .to_string()
     }
 
     pub fn get_string_distro(&self) -> String {
         format!(
             "\t{} {} {}",
             prefix::get_prefix(EntryType::Distro),
-            Color::Green.paint("DISTRO:"),
+            "DISTRO:".green().bold(),
             self.distro
         )
     }
@@ -52,9 +56,13 @@ impl Entry {
         format!(
             "\t{} {} {}",
             prefix::get_prefix(EntryType::PackageCount),
-            Color::Green.paint("PKGS:"),
+            "PKGS:".green().bold(),
             self.package_count,
         )
+    }
+
+    pub fn get_string_banner(&self) -> String {
+        format!("{}", self.banner)
     }
 }
 
@@ -159,6 +167,126 @@ fn read_package_num() -> String {
             .count()
             .to_string();
     }
+    // Debian and Ubuntu linux
+    else if distro.contains("Debian")
+        || distro.contains("debian")
+        || distro.contains("Ubuntu")
+        || distro.contains("ubuntu")
+    {
+        let package_list = Command::new("dpkg")
+            .arg("-l")
+            .output()
+            .expect("Having problems finding package count.");
+
+        return String::from_utf8(package_list.stdout)
+            .unwrap()
+            .trim()
+            .lines()
+            .count()
+            .to_string();
+    }
 
     String::new()
+}
+
+/// Gets the banner depending on the distro.
+fn read_banner() -> String {
+    let distro = read_distro();
+    // let distro = "gentoo";
+
+    // Void linux
+    if distro.contains("Void") || distro.contains("void") {
+        return String::from(
+            r"                      __     __ 
+        .--.--.-----.|__|.--|  |
+        |  |  |  _  ||  ||  _  |
+         \___/|_____||__||_____|
+                        ",
+        )
+        .bright_green()
+        .bold()
+        .to_string();
+    }
+    // Artix linux
+    else if distro.contains("Artix") || distro.contains("artix") {
+        return String::from(
+            r"
+                     __   __        
+        .---.-.----.|  |_|__|.--.--.
+        |  _  |   _||   _|  ||_   _|
+        |___._|__|  |____|__||__.__|
+            ",
+        )
+        .bright_blue()
+        .bold()
+        .to_string();
+    }
+    // Arch linux
+    else if distro.contains("Arch") || distro.contains("arch") {
+        return String::from(
+            r"
+                          __    
+        .---.-.----.----.|  |--.
+        |  _  |   _|  __||     |
+        |___._|__| |____||__|__|
+            ",
+        )
+        .bright_blue()
+        .bold()
+        .to_string();
+    }
+    // Debian linux
+    else if distro.contains("Debian") || distro.contains("debian") {
+        return String::from(
+            r"
+        __         __     __              
+    .--|  |.-----.|  |--.|__|.---.-.-----.
+    |  _  ||  -__||  _  ||  ||  _  |     |
+    |_____||_____||_____||__||___._|__|__|
+            ",
+        )
+        .bright_red()
+        .bold()
+        .to_string();
+    }
+    // Ubuntu linux
+    else if distro.contains("Ubuntu") || distro.contains("ubuntu") {
+        return String::from(
+            r"
+            __                 __         
+    .--.--.|  |--.--.--.-----.|  |_.--.--.
+    |  |  ||  _  |  |  |     ||   _|  |  |
+    |_____||_____|_____|__|__||____|_____|
+            ",
+        )
+        .bright_red()
+        .bold()
+        .to_string();
+    }
+    // Gentoo
+    else if distro.contains("Gentoo") || distro.contains("gentoo") {
+        return String::from(
+            r"
+                        __               
+    .-----.-----.-----.|  |_.-----.-----.
+    |  _  |  -__|     ||   _|  _  |  _  |
+    |___  |_____|__|__||____|_____|_____|
+    |_____|                                          ",
+        )
+        .magenta()
+        .bold()
+        .to_string();
+    }
+
+    String::from(
+        r"
+         __ __                    
+        |  |__|.-----.--.--.--.--.
+        |  |  ||     |  |  |_   _|
+        |__|__||__|__|_____|__.__|
+        ",
+    )
+    .bright_yellow()
+    .bold()
+    .to_string()
 }
