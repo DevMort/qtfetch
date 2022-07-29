@@ -1,43 +1,59 @@
 use crate::prefix;
+use ansi_term::Color;
 use std::fs::File;
 use std::io::prelude::*;
 use std::process::Command;
-// use ansi_term;
 
 /// Holds the entire fetch information.
 pub struct Entry {
+    username: String,
     hostname: String,
     distro: String,
+    package_count: String,
 }
 
 pub enum EntryType {
-    Hostname,
+    User, // ex. anon@pc
+    PackageCount,
     Distro,
 }
 
 impl Entry {
     pub fn new() -> Self {
         Self {
+            package_count: read_package_num("Void"),
+            username: read_username(),
             hostname: read_hostname(),
             distro: read_distro(),
         }
     }
 
-    pub fn get_string_hostname(&self) -> String {
-        format!(
-            "{} {} {}",
-            prefix::get_prefix(EntryType::Hostname),
-            "HOST:",
-            self.hostname
-        )
+    pub fn get_string_user(&self) -> String {
+        Color::Yellow
+            .paint(format!(
+                "\t\t\t{}{}@{}",
+                prefix::get_prefix(EntryType::User),
+                self.username,
+                self.hostname,
+            ))
+            .to_string()
     }
 
     pub fn get_string_distro(&self) -> String {
         format!(
-            "{} {} {}",
+            "\t{} {} {}",
             prefix::get_prefix(EntryType::Distro),
-            "DISTRO:",
+            Color::Green.paint("DISTRO:"),
             self.distro
+        )
+    }
+
+    pub fn get_string_package_count(&self) -> String {
+        format!(
+            "\t{} {} {}",
+            prefix::get_prefix(EntryType::PackageCount),
+            Color::Green.paint("PKGS:"),
+            self.package_count,
         )
     }
 }
@@ -88,5 +104,59 @@ fn read_hostname() -> String {
         .output()
         .expect("Encountered problems while finding hostname!");
 
-    String::from_utf8(hostname.stdout).unwrap()
+    String::from_utf8(hostname.stdout)
+        .unwrap()
+        .trim()
+        .to_string()
+}
+
+/// Gets the current user using the command
+/// `whoami` and then returns it.
+fn read_username() -> String {
+    let username = Command::new("whoami")
+        .output()
+        .expect("Encountered problems while finding username!");
+
+    String::from_utf8(username.stdout)
+        .unwrap()
+        .trim()
+        .to_string()
+}
+
+/// Counts the packages on the system.
+fn read_package_num(distro: &str) -> String {
+    // Void linux
+    if distro.contains("Void") || distro.contains("void") {
+        let package_list = Command::new("xbps-query")
+            .arg("-l")
+            .output()
+            .expect("Having problems finding package count.");
+
+        return String::from_utf8(package_list.stdout)
+            .unwrap()
+            .trim()
+            .lines()
+            .count()
+            .to_string();
+    }
+    // Arch and Artix linux
+    else if distro.contains("Artix")
+        || distro.contains("artix")
+        || distro.contains("Arch")
+        || distro.contains("arch")
+    {
+        let package_list = Command::new("pacman")
+            .arg("-Q")
+            .output()
+            .expect("Having problems finding package count.");
+
+        return String::from_utf8(package_list.stdout)
+            .unwrap()
+            .trim()
+            .lines()
+            .count()
+            .to_string();
+    }
+
+    String::new()
 }
