@@ -12,6 +12,7 @@ pub struct Entry {
     cpu: String,
     temperature: String,
     package_count: String,
+    memory: (f32, f32), // current, total
 }
 
 pub enum EntryType {
@@ -19,6 +20,7 @@ pub enum EntryType {
     CPU,
     PackageCount,
     Temperature,
+    Memory,
     Distro,
 }
 
@@ -32,6 +34,7 @@ impl Entry {
             cpu: read_cpu(),
             hostname: read_hostname(),
             distro: read_distro(),
+            memory: read_memory(),
         }
     }
 
@@ -79,12 +82,22 @@ impl Entry {
         )
     }
 
-    pub fn get_temperature(&self) -> String {
+    pub fn get_string_temperature(&self) -> String {
         format!(
             "\t{} {} {}",
             prefix::get_prefix(EntryType::Temperature),
             "TEMP:".green().bold(),
             self.temperature,
+        )
+    }
+
+    pub fn get_string_memory(&self) -> String {
+        format!(
+            "\t{} {} {}M / {}G",
+            prefix::get_prefix(EntryType::Memory),
+            "MEM :".green().bold(),
+            self.memory.0.ceil().to_string(),
+            self.memory.1.ceil().to_string(),
         )
     }
 }
@@ -178,6 +191,40 @@ fn read_cpu() -> String {
         .next()
         .unwrap()
         .to_string()
+}
+
+/// Reads the current and total memory.
+fn read_memory() -> (f32, f32) {
+    let meminfo = match fs::read_to_string("/proc/meminfo") {
+        Ok(s) => s,
+        Err(e) => panic!("Encountered a problem when finding memory. {e}"),
+    };
+    let meminfo = meminfo.lines().collect::<Vec<&str>>();
+
+    let total = meminfo
+        .iter()
+        .next()
+        .unwrap()
+        .split_ascii_whitespace()
+        .collect::<Vec<&str>>()
+        .get(1)
+        .unwrap()
+        .parse::<f32>()
+        .unwrap()
+        / 1000000.0;
+    let current = meminfo
+        .iter()
+        .next()
+        .unwrap()
+        .split_ascii_whitespace()
+        .collect::<Vec<&str>>()
+        .get(1)
+        .unwrap()
+        .parse::<f32>()
+        .unwrap()
+        / 1000.0;
+
+    (current, total)
 }
 
 /// Counts the packages on the system.

@@ -12,5 +12,6 @@ fn main() {
     println!("{}", entry.get_string_distro());
     println!("{}", entry.get_string_cpu());
     println!("{}", entry.get_string_package_count());
-    println!("{}\n", entry.get_temperature());
+    println!("{}", entry.get_string_memory());
+    println!("{}\n", entry.get_string_temperature());
 }

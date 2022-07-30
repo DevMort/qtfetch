@@ -6,6 +6,7 @@ pub fn get_prefix(entry_type: EntryType) -> String {
         EntryType::CPU => "⚙️ ".to_string(),
         EntryType::Distro => "🖥️ ".to_string(),
         EntryType::Temperature => "🔥".to_string(),
+        EntryType::Memory => "💿".to_string(),
         EntryType::PackageCount => "🗃️ ".to_string(),
     }
 }
