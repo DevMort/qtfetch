@@ -1,7 +1,8 @@
 use crate::prefix;
 use ureq;
 use colored::Colorize;
-use std::fs;
+use std::path::Path;
+use std::{fs, path};
 use std::process::Command;
 
 /// Holds the entire fetch information.
@@ -295,13 +296,23 @@ fn read_package_num() -> String {
 
 /// Fetches a quote from the internet.
 fn read_quote() -> String {
-    // gonna be an xml
-    let body = match ureq::get("https://quotes.rest/qod").call() {
-        Ok(resp) => match resp.into_string() {
-            Ok(text) => text,
+    // check first if there is already a saved
+    // quote for the day
+    let mut body = 
+    if Path::new("/tmp/qod").exists(){ // if it is already saved
+        fs::read_to_string("/tmp/qod").unwrap() 
+    } else {
+        // get the quote online
+        let xml = match ureq::get("https://quotes.rest/qod").call() {
+            Ok(resp) => match resp.into_string() {
+                Ok(text) => text,
+                Err(_) => return String::from(""),
+            }
             Err(_) => return String::from(""),
-        }
-        Err(_) => return String::from(""),
+        };
+        fs::write("/tmp/qod", xml.clone());
+
+        xml
     };
 
     // parse that xml to get the qoute
