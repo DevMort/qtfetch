@@ -13,5 +13,6 @@ fn main() {
     println!("{}", entry.get_string_cpu());
     println!("{}", entry.get_string_package_count());
     println!("{}", entry.get_string_memory());
-    println!("{}\n", entry.get_string_temperature());
+    println!("{}", entry.get_string_temperature());
+    println!("\"{}\"\n", entry.get_string_quote());
 }

@@ -10,6 +10,7 @@ pub struct Entry {
     banner: String,
     distro: String,
     cpu: String,
+    quote: String,
     temperature: String,
     package_count: String,
     memory: (f32, f32), // current, total
@@ -32,6 +33,7 @@ impl Entry {
             temperature: read_temperature(),
             banner: read_banner(),
             cpu: read_cpu(),
+            quote: read_quote(),
             hostname: read_hostname(),
             distro: read_distro(),
             memory: read_memory(),
@@ -100,6 +102,11 @@ impl Entry {
             self.memory.1.ceil().to_string(),
         )
     }
+
+    pub fn get_string_quote(&self) -> String {
+        self.quote.italic().to_string()
+    }
+
 }
 
 /// Finds what kind of distro the user
@@ -283,6 +290,13 @@ fn read_package_num() -> String {
     }
 
     String::new()
+}
+
+/// Fetches a quote from the internet.
+fn read_quote() -> String {
+    //
+
+    String::from("Placeholder quote.")
 }
 
 /// Gets the banner depending on the distro.
