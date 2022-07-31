@@ -1,42 +1,43 @@
 use crate::prefix;
+use ureq;
 use colored::Colorize;
 use std::fs;
 use std::process::Command;
 
 /// Holds the entire fetch information.
 pub struct Entry {
-    username: String,
-    hostname: String,
     banner: String,
-    distro: String,
     cpu: String,
+    distro: String,
+    hostname: String,
+    memory: (f32, f32), // current, total
+    package_count: String,
     quote: String,
     temperature: String,
-    package_count: String,
-    memory: (f32, f32), // current, total
+    username: String,
 }
 
 pub enum EntryType {
-    User, // ex. anon@pc
     CPU,
+    Distro,
+    Memory,
     PackageCount,
     Temperature,
-    Memory,
-    Distro,
+    User, // ex. anon@pc
 }
 
 impl Entry {
     pub fn new() -> Self {
         Self {
-            package_count: read_package_num(),
-            username: read_username(),
-            temperature: read_temperature(),
             banner: read_banner(),
             cpu: read_cpu(),
-            quote: read_quote(),
-            hostname: read_hostname(),
             distro: read_distro(),
+            hostname: read_hostname(),
             memory: read_memory(),
+            package_count: read_package_num(),
+            quote: read_quote(),
+            temperature: read_temperature(),
+            username: read_username(),
         }
     }
 
@@ -294,9 +295,19 @@ fn read_package_num() -> String {
 
 /// Fetches a quote from the internet.
 fn read_quote() -> String {
-    //
+    // gonna be an xml
+    let body = match ureq::get("https://quotes.rest/qod").call() {
+        Ok(resp) => match resp.into_string() {
+            Ok(text) => text,
+            Err(_) => return String::from(""),
+        }
+        Err(_) => return String::from(""),
+    };
 
-    String::from("Placeholder quote.")
+    // parse that xml to get the qoute
+
+    // should the quote not be found, just return an empty string
+    String::from("")
 }
 
 /// Gets the banner depending on the distro.
