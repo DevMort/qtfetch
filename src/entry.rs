@@ -1,9 +1,9 @@
 use crate::prefix;
-use ureq;
 use colored::Colorize;
+use std::fs;
 use std::path::Path;
-use std::{fs, path};
 use std::process::Command;
+use ureq;
 
 /// Holds the entire fetch information.
 pub struct Entry {
@@ -108,7 +108,6 @@ impl Entry {
     pub fn get_string_quote(&self) -> String {
         self.quote.italic().to_string()
     }
-
 }
 
 /// Finds what kind of distro the user
@@ -298,27 +297,31 @@ fn read_package_num() -> String {
 fn read_quote() -> String {
     // check first if there is already a saved
     // quote for the day
-    let mut body = 
-    if Path::new("/tmp/qod").exists(){ // if it is already saved
-        fs::read_to_string("/tmp/qod").unwrap() 
+    let body = if Path::new("/tmp/qod").exists() {
+        // if it is already saved
+        fs::read_to_string("/tmp/qod").unwrap()
     } else {
         // get the quote online
         let xml = match ureq::get("https://quotes.rest/qod").call() {
             Ok(resp) => match resp.into_string() {
                 Ok(text) => text,
                 Err(_) => return String::from(""),
-            }
+            },
             Err(_) => return String::from(""),
         };
-        fs::write("/tmp/qod", xml.clone());
+        fs::write("/tmp/qod", xml.clone()).unwrap();
 
         xml
     };
 
-    // parse that xml to get the qoute
+    // parse the qoute
+    let line = match body.lines().nth(7) {
+        Some(s) => s.trim().replace("\"quote\": \"", "").replace("\",", ""),
+        None => return String::from(""),
+    };
 
     // should the quote not be found, just return an empty string
-    String::from("")
+    line.to_string()
 }
 
 /// Gets the banner depending on the distro.
