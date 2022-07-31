@@ -40,7 +40,7 @@ impl Entry {
 
     pub fn get_string_user(&self) -> String {
         format!(
-            "\t\t{} {}@{}",
+            "{} {}@{}",
             prefix::get_prefix(EntryType::User),
             self.username,
             self.hostname,
@@ -53,7 +53,7 @@ impl Entry {
 
     pub fn get_string_distro(&self) -> String {
         format!(
-            "\t{} {} {}",
+            "{} {} {}",
             prefix::get_prefix(EntryType::Distro),
             "DIST:".green().bold(),
             self.distro
@@ -62,7 +62,7 @@ impl Entry {
 
     pub fn get_string_package_count(&self) -> String {
         format!(
-            "\t{} {} {}",
+            "{} {} {}",
             prefix::get_prefix(EntryType::PackageCount),
             "PKGS:".green().bold(),
             self.package_count,
@@ -75,7 +75,7 @@ impl Entry {
 
     pub fn get_string_cpu(&self) -> String {
         format!(
-            "\t{} {} {}",
+            "{} {} {}",
             prefix::get_prefix(EntryType::CPU),
             "CPU :".green().bold(),
             self.cpu,
@@ -84,7 +84,7 @@ impl Entry {
 
     pub fn get_string_temperature(&self) -> String {
         format!(
-            "\t{} {} {}",
+            "{} {} {}",
             prefix::get_prefix(EntryType::Temperature),
             "TEMP:".green().bold(),
             self.temperature,
@@ -93,7 +93,7 @@ impl Entry {
 
     pub fn get_string_memory(&self) -> String {
         format!(
-            "\t{} {} {}M / {}G",
+            "{} {} {}M / {}G",
             prefix::get_prefix(EntryType::Memory),
             "MEM :".green().bold(),
             self.memory.0.ceil().to_string(),
@@ -293,10 +293,10 @@ fn read_banner() -> String {
     // Void linux
     if distro.contains("Void") || distro.contains("void") {
         return String::from(
-            r"                      __     __ 
-        .--.--.-----.|__|.--|  |
-        |  |  |  _  ||  ||  _  |
-         \___/|_____||__||_____|
+            r"              __     __ 
+.--.--.-----.|__|.--|  |
+|  |  |  _  ||  ||  _  |
+ \___/|_____||__||_____|
                         ",
         )
         .bright_green()
@@ -306,11 +306,10 @@ fn read_banner() -> String {
     // Artix linux
     else if distro.contains("Artix") || distro.contains("artix") {
         return String::from(
-            r"
-                     __   __        
-        .---.-.----.|  |_|__|.--.--.
-        |  _  |   _||   _|  ||_   _|
-        |___._|__|  |____|__||__.__|
+            r"             __   __        
+.---.-.----.|  |_|__|.--.--.
+|  _  |   _||   _|  ||_   _|
+|___._|__|  |____|__||__.__|
             ",
         )
         .bright_blue()
@@ -320,11 +319,10 @@ fn read_banner() -> String {
     // Arch linux
     else if distro.contains("Arch") || distro.contains("arch") {
         return String::from(
-            r"
-                          __    
-        .---.-.----.----.|  |--.
-        |  _  |   _|  __||     |
-        |___._|__| |____||__|__|
+            r"                  __    
+.---.-.----.----.|  |--.
+|  _  |   _|  __||     |
+|___._|__| |____||__|__|
             ",
         )
         .bright_blue()
@@ -334,11 +332,10 @@ fn read_banner() -> String {
     // Debian linux
     else if distro.contains("Debian") || distro.contains("debian") {
         return String::from(
-            r"
-        __         __     __              
-    .--|  |.-----.|  |--.|__|.---.-.-----.
-    |  _  ||  -__||  _  ||  ||  _  |     |
-    |_____||_____||_____||__||___._|__|__|
+            r"    __         __     __              
+.--|  |.-----.|  |--.|__|.---.-.-----.
+|  _  ||  -__||  _  ||  ||  _  |     |
+|_____||_____||_____||__||___._|__|__|
             ",
         )
         .bright_red()
@@ -348,11 +345,10 @@ fn read_banner() -> String {
     // Ubuntu linux
     else if distro.contains("Ubuntu") || distro.contains("ubuntu") {
         return String::from(
-            r"
-            __                 __         
-    .--.--.|  |--.--.--.-----.|  |_.--.--.
-    |  |  ||  _  |  |  |     ||   _|  |  |
-    |_____||_____|_____|__|__||____|_____|
+            r"        __                 __         
+.--.--.|  |--.--.--.-----.|  |_.--.--.
+|  |  ||  _  |  |  |     ||   _|  |  |
+|_____||_____|_____|__|__||____|_____|
             ",
         )
         .bright_red()
@@ -362,12 +358,11 @@ fn read_banner() -> String {
     // Gentoo
     else if distro.contains("Gentoo") || distro.contains("gentoo") {
         return String::from(
-            r"
-                        __               
-    .-----.-----.-----.|  |_.-----.-----.
-    |  _  |  -__|     ||   _|  _  |  _  |
-    |___  |_____|__|__||____|_____|_____|
-    |_____|                                          ",
+            r"                    __               
+.-----.-----.-----.|  |_.-----.-----.
+|  _  |  -__|     ||   _|  _  |  _  |
+|___  |_____|__|__||____|_____|_____|
+|_____|",
         )
         .magenta()
         .bold()
@@ -376,11 +371,10 @@ fn read_banner() -> String {
 
     // Should the distro not be found, just use "linux".
     String::from(
-        r"
-         __ __                    
-        |  |__|.-----.--.--.--.--.
-        |  |  ||     |  |  |_   _|
-        |__|__||__|__|_____|__.__|
+        r" __ __                    
+|  |__|.-----.--.--.--.--.
+|  |  ||     |  |  |_   _|
+|__|__||__|__|_____|__.__|
         ",
     )
     .bright_yellow()
