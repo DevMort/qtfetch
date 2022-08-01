@@ -97,7 +97,7 @@ impl Entry {
 
     pub fn get_string_memory(&self) -> String {
         format!(
-            "{} {} {}M / {}G",
+            "{} {} {}G / {}G",
             prefix::get_prefix(EntryType::Memory),
             "MEM :".green().bold(),
             self.memory.0.ceil().to_string(),
@@ -222,7 +222,7 @@ fn read_memory() -> (f32, f32) {
         / 1000000.0;
     let current = meminfo
         .iter()
-        .next()
+        .nth(1)
         .unwrap()
         .split_ascii_whitespace()
         .collect::<Vec<&str>>()
@@ -230,7 +230,7 @@ fn read_memory() -> (f32, f32) {
         .unwrap()
         .parse::<f32>()
         .unwrap()
-        / 1000.0;
+        / 100000.0;
 
     (current, total)
 }
@@ -320,7 +320,6 @@ fn read_quote() -> String {
         None => return String::from(""),
     };
 
-    // should the quote not be found, just return an empty string
     line.to_string()
 }
 

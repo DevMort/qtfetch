@@ -4,9 +4,9 @@ pub fn get_prefix(entry_type: EntryType) -> String {
     match entry_type {
         EntryType::User => "👤".to_string(),
         EntryType::CPU => "⚙️ ".to_string(),
-        EntryType::Distro => "🖥️ ".to_string(),
+        EntryType::Distro => "🖥️".to_string(),
         EntryType::Temperature => "🔥".to_string(),
         EntryType::Memory => "💿".to_string(),
-        EntryType::PackageCount => "🗃️ ".to_string(),
+        EntryType::PackageCount => "🗃️".to_string(),
     }
 }
