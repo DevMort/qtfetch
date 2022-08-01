@@ -6,17 +6,7 @@ use std::process::Command;
 use ureq;
 
 /// Holds the entire fetch information.
-pub struct Entry {
-    banner: String,
-    cpu: String,
-    distro: String,
-    hostname: String,
-    memory: (f32, f32), // current, total
-    package_count: String,
-    quote: String,
-    temperature: String,
-    username: String,
-}
+pub struct Entry;
 
 pub enum EntryType {
     CPU,
@@ -29,25 +19,15 @@ pub enum EntryType {
 
 impl Entry {
     pub fn new() -> Self {
-        Self {
-            banner: read_banner(),
-            cpu: read_cpu(),
-            distro: read_distro(),
-            hostname: read_hostname(),
-            memory: read_memory(),
-            package_count: read_package_num(),
-            quote: read_quote(),
-            temperature: read_temperature(),
-            username: read_username(),
-        }
+        Self
     }
 
     pub fn get_string_user(&self) -> String {
         format!(
             "{} {}@{}",
             prefix::get_prefix(EntryType::User),
-            self.username,
-            self.hostname,
+            read_username(),
+            read_hostname(),
         )
         .yellow()
         .bold()
@@ -60,7 +40,7 @@ impl Entry {
             "{} {} {}",
             prefix::get_prefix(EntryType::Distro),
             "DIST:".green().bold(),
-            self.distro
+            read_distro(),
         )
     }
 
@@ -69,12 +49,12 @@ impl Entry {
             "{} {} {}",
             prefix::get_prefix(EntryType::PackageCount),
             "PKGS:".green().bold(),
-            self.package_count,
+            read_package_num(),
         )
     }
 
     pub fn get_string_banner(&self) -> String {
-        format!("{}", self.banner)
+        format!("{}", read_banner())
     }
 
     pub fn get_string_cpu(&self) -> String {
@@ -82,7 +62,7 @@ impl Entry {
             "{} {} {}",
             prefix::get_prefix(EntryType::CPU),
             "CPU :".green().bold(),
-            self.cpu,
+            read_cpu(),
         )
     }
 
@@ -91,7 +71,7 @@ impl Entry {
             "{} {} {}",
             prefix::get_prefix(EntryType::Temperature),
             "TEMP:".green().bold(),
-            self.temperature,
+            read_temperature(),
         )
     }
 
@@ -100,13 +80,13 @@ impl Entry {
             "{} {} {}G / {}G",
             prefix::get_prefix(EntryType::Memory),
             "MEM :".green().bold(),
-            self.memory.0.ceil().to_string(),
-            self.memory.1.ceil().to_string(),
+            read_memory().0.ceil().to_string(),
+            read_memory().1.ceil().to_string(),
         )
     }
 
     pub fn get_string_quote(&self) -> String {
-        self.quote.italic().to_string()
+        read_quote().italic().to_string()
     }
 }
 
@@ -279,6 +259,21 @@ fn read_package_num() -> String {
     {
         let package_list = Command::new("dpkg")
             .arg("-l")
+            .output()
+            .expect("Having problems finding package count.");
+
+        return String::from_utf8(package_list.stdout)
+            .unwrap()
+            .trim()
+            .lines()
+            .count()
+            .to_string();
+    }
+    // Gentoo linux
+    else if distro.contains("Gentoo") || distro.contains("gentoo") {
+        // ls -d /var/db/pkg/*/*
+        let package_list = Command::new("ls")
+            .args(["-d", "/var/db/pkg/*/*"])
             .output()
             .expect("Having problems finding package count.");
 
